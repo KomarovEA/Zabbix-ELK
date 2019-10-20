@@ -1,0 +1,48 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# Zabbix server's address
+ZSH = "192.168.56.223"
+# Zabbix test agent's address
+ZAG = "192.168.56.227"
+# Zabbix DataBase name
+ZDB = "zabbix"
+# Zabbix DB user name
+ZDBU = "zabbix"
+# Zabbix DB user's password
+ZDBP= "zabbix"
+Vagrant.configure("2") do |config|
+	config.vm.box_check_update = false
+	config.vm.box = "sbeliakou/centos"
+	
+	config.vm.define "komarov-zabsrv" do |cl|
+        	cl.vm.host_name="komarov-zabsrv"
+        	cl.vm.network "private_network", ip: ZSH
+        	cl.vm.provider "virtualbox" do |vm|
+         	       	vm.gui = false
+                	vm.memory = "1024"
+                	vm.name = "komarov-zabsrv"
+                	end
+        	cl.vm.provision "shell" do |s|
+			s.path = "./zabsrv-config.4.2.sh"
+			s.args = "#{ZSH} #{ZDB} #{ZDBU} #{ZDBP}"
+			end
+		cl.vm.provision "shell" do |s|
+			s.path = "./zabag-config.sh"
+			s.args = "#{ZSH} #{ZSH}"
+			end
+        	end
+	
+	config.vm.define "komarov-zabag" do |cl|
+	        cl.vm.host_name="komarov-zabag"
+	        cl.vm.network "private_network", ip: ZAG
+	        cl.vm.provider "virtualbox" do |vm|
+	                vm.gui = false
+	                vm.memory = "1024"
+	                vm.name = "komarov-zabag"
+	                end
+	        cl.vm.provision "shell" do |s|
+			s.path = "./zabag-config.sh"
+			s.args = "#{ZSH} #{ZAG}"
+			end
+	        end
+end
