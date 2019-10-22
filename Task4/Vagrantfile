@@ -1,0 +1,43 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Elasticsearch + Kibana server's address
+EKS = "192.168.56.223"
+# Tomcat + Logstash agent VM's address
+TLA = "192.168.56.227"
+
+Vagrant.configure("2") do |config|
+	config.vm.box_check_update = false
+	config.vm.box = "sbeliakou/centos"
+	config.vm.define "kea-tl" do |cl|
+	        cl.vm.host_name="kea-tl"
+	        cl.vm.network "private_network", ip: TLA
+	        cl.vm.provider "virtualbox" do |vm|
+	                vm.gui = false
+	                vm.memory = "1024"
+	                vm.name = "kea-tl"
+	                end
+	        # tomcat installing
+			cl.vm.provision "shell" do |s|
+				s.path = "./tomcat-install.sh"
+				s.args = "#{EKS} #{TLA}"
+				end
+			cl.vm.provision "shell" do |s|
+				s.path = "./logstash-install.sh"
+				s.args = "#{EKS} #{TLA}"
+				end
+	end
+	config.vm.define "kea-ek" do |cl|
+        	cl.vm.host_name="kea-ek"
+        	cl.vm.network "private_network", ip: EKS
+        	cl.vm.provider "virtualbox" do |vm|
+         	       	vm.gui = false
+                	vm.memory = "2048"
+                	vm.name = "kea-ek"
+                	end
+        	cl.vm.provision "shell" do |s|
+				s.path = "./ek-install.sh"
+				s.args = "#{EKS} #{TLA}"
+				end
+    end
+end
